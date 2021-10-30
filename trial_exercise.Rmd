@@ -1,0 +1,80 @@
+---
+title: "trial_1"
+author: "nassimzoueini"
+date: "28 10 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+library(lubridate)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(readxl)
+```
+```{r}
+survey_raw1<-survey_raw %>% 
+  clean_names()
+
+survey_raw2<- survey_raw1 %>% 
+  remove_empty()
+
+survey_raw2 %>% 
+  remove_constant(quiet = FALSE)->survey_raw3
+```
+```{r}
+get_dupes(survey_raw1) 
+survey_raw2 %>% 
+  distinct()
+```
+
+
+```{r}
+survey_raw2 %>% 
+ tabyl(interviewees_education , do_you_go_to_the_public_beaches) %>% 
+  adorn_title(placement = "combined" , col_name = "willingness to go to PB") ->table1
+survey_raw1 %>% 
+  tabyl(nationality, is_this_interview_taking_place_on_a_public_or_private_beach) %>%
+  adorn_totals("col") %>%
+  adorn_percentages("row") %>%
+  adorn_pct_formatting(digits = 2) %>%
+  adorn_ns() %>%
+  adorn_title(placement = "combined", col_name = "Expenditure Range")->table2
+
+
+```
+
+
+```{r}
+f<-factor(survey_raw2$on_a_scale_from_1_to_5_do_you_think_that_public_beaches_add_or_would_add_touristic_value_to_your_city_attract_tourists_to_the_city, levels = c("1" ,"2","3", "4" , "5"))
+top_levels(f, n=1)
+```
+
+
+
+
