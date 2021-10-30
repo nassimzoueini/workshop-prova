@@ -1,0 +1,158 @@
+---
+title: "janitor: an overview"
+subtitle: "Useful Tools for Cleaning and Exploring Dirty Data"
+author: "presented by Gülce Sena Tuncer & Nassim Zoueini"
+output: 
+  html_document:
+    toc: TRUE
+    df_print: paged
+    number_sections: FALSE
+    highlight: tango
+    theme: lumen
+    toc_depth: 3
+    toc_float: true
+    css: custom.css 
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(digits=2)
+
+colorise <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'>%s</span>", color,
+      x)
+  } else x
+}
+```
+
+Welcome to an overview of **`r colorise("janitor", "blue")`**, an R package that helps beginner/intermediate R users to **format columns, clean dirty data, and explore data sets** in order to easily and quickly prepare data for analysis! `r colorise("janitor", "blue")` follows tidyverse principles and works well with piping.
+
+```{r, message=F, comment=F}
+library(tidyverse)
+library(janitor)
+library(readxl)
+```
+
+## Importing data
+
+We can **import our excel file** using the `read_excel()` function.
+
+```{r, message=F, comment=F}
+dirty_data <- read_excel("sample_data.xlsx")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Cleaning column names
+
+We use `clean_names()` to **manage column names**. The function takes all column names and converts to lowercase letters, adds "_" as a separator, gets rid of special characters and unnecessary spaces, assigns numbers to duplicated names, and converts “%” to “percent”.
+
+```{r, message=F, comment=F}
+dirty_data
+
+student_data <- dirty_data %>% clean_names()
+student_data
+
+data.frame(dirty_data = colnames(dirty_data), student_data = colnames(student_data))
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Removing redundant rows/columns
+
+We use `remove_empty()` to **get rid of empty rows and columns**, and use `remove_constant()` to **get rid of columns with constant values**.
+
+```{r, message=F, comment=F}
+student_data
+
+student_data <- student_data %>% remove_empty(c("rows", "cols"))
+student_data
+
+student_data <- student_data %>% remove_constant()
+student_data
+```
+
+## Rounding
+
+This packages offer **multiple rounding functions** which we can utilize for our specific needs. We can use `round_half_up()` for rounding up or `round_to_fraction()` to enforce the desired fractional distribution by rounding the values to the nearest value by specifying a denominator.
+
+```{r, message=F, comment=F}
+round_half_up(student_data$gpa)
+
+round_half_up(student_data$gpa, digits = 2)
+
+round_to_fraction(student_data$gpa, denominator = 4)
+```
+
+## Fixing date formats
+
+We can also easily **fix dates** that do not appear in proper form when imported from external files using `convert_to_date()`.
+
+```{r, message=F, comment=F}
+student_data
+
+student_data$latest_vaccination <- convert_to_date(student_data$latest_vaccination)
+student_data
+```
+## Getting dupes
+
+We can use the `get_dupes()`function to **detect any duplicates**, have our data frame listed on the specified column, and get dupe counts.
+
+```{r, message=F, comment=F}
+student_data %>% get_dupes()
+
+student_data %>% get_dupes(first_name)
+
+student_data %>% get_dupes(vaccine)
+```
+
+## Exploring data through frequency
+
+The function `tabyl()` **returns neat and quick frequency tables**. Later, we can utilize a list of `adorn_xxx()` functions to format displayed results.
+
+```{r, message=F, comment=F}
+
+student_data %>%
+  tabyl(declared_major) %>%
+  adorn_totals("row") %>%
+  adorn_pct_formatting()
+  
+student_data %>%
+  tabyl(age, class_of) %>%
+  adorn_totals("row") %>%
+  adorn_percentages() %>%
+  adorn_pct_formatting() %>%
+  adorn_ns() %>%
+  adorn_title()
+```
+
+## A few more useful tricks
+
+What if we have couple of rows we want to discard? We can use `row_to_names()` function to **pick any row as our column names**.
+
+```{r, message=F, comment=F}
+library_data <- data.frame(
+  Library_Stats_1 = c("Check outs from the library", "Number of books", "8", "12", "4"),
+  Library_Stats_2 = c("Number of completed books", "Read", "5", "9", "2"))
+
+library_data
+
+row_trick <- library_data %>% row_to_names(row_number = 2)
+
+row_trick
+```
+
+We can also **observe the changes we have made** to the columns by using the `compare_df_cols()` function.
+
+```{r, message=F, comment=F}
+compare_df_cols(library_data, row_trick)
+```
+## Sources
+
+This tutorial draws from the following materials:
+[_janitor package_](https://cran.r-project.org/web/packages/janitor/janitor.pdf), [_overview of janitor functions_](https://cran.r-project.org/web/packages/janitor/vignettes/janitor.html#tabyl---a-better-version-of-table), [_catalog of janitor functions_](https://garthtarr.github.io/meatR/janitor.html#catalog_of_janitor_functions), [_R package reviews | janitor | clean your data!_](https://www.youtube.com/watch?v=poUveR6aDS8)
+
